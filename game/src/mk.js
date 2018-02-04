@@ -1,6 +1,26 @@
-;(function () {
+var mk = {};
+var statusBox;
 
-  var mk = {};
+timeoutFns = []
+
+function runTick() {
+  timeoutFns.forEach(a=>a())
+}
+
+setInterval = (function () {
+  return function (fn, time) {
+    timeoutFns.push(fn)
+    return timeoutFns.length-1
+  }
+})()
+
+clearInterval = (function () {
+  return function (num) {
+    timeoutFns.splice(num, 1);
+  };
+})()
+
+;(function () {
 
   mk.callbacks = {
     ATTACK  : 'attack',
@@ -566,7 +586,7 @@
         mk.game = new mk.controllers.Basic(options);
         break;
       case 'network':
-        mk.game = new mk.controllers.Network(options);
+        //mk.game = new mk.controllers.Network(options);
         break;
       case 'multiplayer':
         mk.game = new mk.controllers.Multiplayer(options);
@@ -658,6 +678,13 @@
       f = this.fighters[i];
       this._context.drawImage(f.getState(), f.getX(), f.getY());
     }
+    if(!statusBox) {
+      statusBox = document.getElementById('state')
+    }
+    statusBox.innerText = `
+      Player1 : ${this.fighters[0].getX()}, ${this.fighters[0].getY()}
+      Player2 : ${this.fighters[1].getX()}, ${this.fighters[1].getY()}
+    `;
   };
 
   mk.arenas.Arena.prototype.moveFighter = function (fighter, pos) {
@@ -792,9 +819,11 @@
       this._beforeGo();
     this._currentStep = step || 0;
     this._nextStep(this._action);
+    // TAG
     this._interval = setInterval(function () {
       self._nextStep(self._action);
     }, this._stepDuration);
+
   };
 
   mk.moves.Move.prototype._action = function () {};
